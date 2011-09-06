@@ -6,9 +6,9 @@ import java.lang.*;
 import java.util.*;
 
 class main112 {
-    private int[] A, C;
+    private int[][] cache;
     private int N;
-    private int[] cache;
+    private int[] A, C;
 
 	public static void main(String[] args) throws IOException
 	{
@@ -39,55 +39,61 @@ class main112 {
                 C[j] = sc.nextInt();
             }
 			
-			cache = new int[1 << (A.length+5)];
+			cache = new int[1<<N][N];
+			for (int j=0; j<cache.length; j++) {
+			    for (int k=0; k<cache[0].length; k++) {
+			        cache[j][k] = 0;
+		        }
+		    }
 
             int result = Integer.MAX_VALUE;
             for (int j=0; j<A.length; j++) {
-                boolean[] used = new boolean[A.length];
-                used[j] = true;
-                result = min(result, solve(used, A[j]));
+                result = min(result, solve(1<<j, j));
             }
 
             System.out.println(result);
         }
     }
 
-	private int solve(boolean[] used, int last)
-    {
-        int numSet = 0;
-        int bitset = 0;
-        for (int i=0; i<used.length; i++) {
-            bitset |= (used[i]?1:0) << (i+4);
-            if (used[i])
-            {
-                numSet++;
-            }
-        }
-        bitset += last;
-
-        if (cache[bitset] > 0)
+    private int countSetBits(int v){
+        int c;           // c accumulates the total bits set in v
+        for (c = 0; v != 0; c++)
         {
-            return cache[bitset];
+            v &= v - 1;  // clear the least significant bit set
         }
+        return c;
+    }
 
-        if (numSet == A.length)
+    private boolean isBitPresent(int var, int pos)
+    {
+        return (var & (1<<pos)) != 0;
+    }
+
+    /**
+        last is the index to last used value in A[],
+        ie. range(element in A)<150(8 bits)
+    */
+	private int solve(int used, int last)
+    {
+        if (cache[used][last] > 0)
+            return cache[used][last];
+
+        int cur_pos = countSetBits(used);
+        if (cur_pos == A.length)
             return 0;
 
         int mn = Integer.MAX_VALUE;
         for (int i=0; i<A.length; i++) {
-            if (!used[i])
+            if (!isBitPresent(used, i))
             {
-                boolean[] next_used = new boolean[used.length];
-                System.arraycopy(used, 0, next_used, 0, used.length);
-                next_used[i] = true;
-
-                int subcost = solve(next_used, A[i]);
-                int additional = C[numSet] * abs(last - A[i]);
+                int next_used = used | (1<<i);
+                int subcost = solve(next_used, i);
+                int additional = C[cur_pos] * abs(A[last] - A[i]);
                 mn = min(mn, subcost + additional);
             }
         }
 
-        cache[bitset] = mn;
+        cache[used][last] = mn;
         return mn;
     }
 }
