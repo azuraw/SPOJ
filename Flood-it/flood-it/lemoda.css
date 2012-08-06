@@ -1,0 +1,144 @@
+body {
+    font-family: Verdana, Helvetica, sans-serif
+}
+
+.perl-code {
+    font-size: 18px;
+    background-color: #eee;
+    margin: 20px;
+    padding:10px;
+}
+.comment {
+    color: #990000;
+}
+.constant {
+    color: #9955FF;
+}
+.comment-delimiter {
+    color: #990000;
+}
+.cperl-nonoverridable {
+    color: #880022;
+    font-weight: bold;
+}
+.cperl-hash {
+    color: #FF7000;
+    font-weight: bold;
+}
+.function-name {
+    color: #886644;
+    font-weight: bold;
+}
+.keyword {
+    color: #883399;
+    font-weight: bold;
+}
+.string {
+    color: #ff0044;
+}
+.variable-name {
+    color: #885522;
+    font-style: italic;
+}
+
+.google-ad-horizontal {
+    width:728px;
+    height:90px;
+    margin:20px;
+}
+.lemoda-page-bottom {
+    font-family: sans-serif;
+    font-size: 13px;
+    margin:10px;
+}
+code {
+    font-size: 17px;
+    font-weight: bold;
+}
+
+ul.navigation-list {
+    list-style: none;
+    margin:0px;
+    padding:0px;
+}
+
+.navigation-list li {
+    list-style: none;
+    float: left;
+    border: solid 2px;
+    border-color: #CD950C;
+    margin:2px;
+    font-family: Arial Black;
+}
+
+.navigation-list a {
+    text-decoration: none;
+    padding-left:5px;
+    padding-right:5px;
+}
+
+.navigation-list a:hover {
+    background-color: #EEE8CD ;
+    padding-left:5px;
+    padding-right:5px;
+}
+
+div.navigation-box {
+    display: block;
+    clear:both;
+    float:none;
+}
+.index-title {
+    border: solid 2px;
+    border-color: #CD950C;
+    background-color: #EEE8CD;
+    margin:3px;
+    padding-left: 10px;
+    padding-right: 10px;
+    font-family: Arial Black;
+}
+.index-off {
+    border: solid 2px;
+    border-color: #345;
+    background-color: #741;
+    margin:3px;
+    padding-left: 10px;
+    padding-right: 10px;
+    font-family: Arial Black;
+}
+
+.index-off a {
+    color: #fff;
+}
+.index-off a:hover {
+    background-color: #741;
+    padding-left:5px;
+    padding-right:5px;
+}
+
+.disabled {
+    cursor:pointer;
+    opacity:.20;
+    filter:Alpha(opacity=20);
+}
+
+.makefile-targets {
+    font-weight: bold;
+    color: #C55;
+}
+.makefile-shell {
+    font-weight: bold;
+}
+.type {
+    font-weight: bold;
+    color: #449;
+}
+.css-selector {
+    font-weight: bold;
+    color: darkorange;
+}
+
+.css-property {
+    color: #AA5522;
+    font-style: italic;
+}

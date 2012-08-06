@@ -1,0 +1,49 @@
+== Towards a solution for Flood-it: the game ==
+
+@ http://stackoverflow.com/questions/1430962/how-to-optimally-solve-the-flood-fill-puzzle
+
+- NP-hard problem
+
+Approaches:
+    1. A* w/ heuristic function: ? suggestions:-
+        - no. of squares on board of a different colour
+        - admissible: (no. of colours left-1) <= takes at least this many clicks to clear board
+        - As a heuristic, you could construct a graph where each node represents a set of contiguous, same-colour squares, and each node is connected to those it touches. (Each edge weighted as 1). You could then use a path-finding algorithm to calculate the "distance" from the top left to all other nodes. Then, by looking the results of flood-filling using each of the other 5 colours, determine which one minimises the distance to the "furthest" node, since that will likely be your bottleneck.
+
+        Add the result of that calculation to the number of fills done so far, and use that as your A* heuristic.
+        
+        Represent each group of contiguous, same-colour squares in a disjoint set, and a list of adjacent groups of squares. A flood fill merges a set to all its adjacent sets, and merges the adjacency lists. This implicit graph structure will let you find the distance from the upper left corner to the farthest node.
+        - A* is just a prioritised graph search. Each node is a game state, you rank nodes based on some heuristic, and always expand the lowest-expected-final-cost node. As long as your heuristic doesn't underestimate costs, the first solution you find is guaranteed to be optimal.
+
+        After playing the games a few times, I found that trying to drill to the opposite corner then all corners tended to result in a win. So a good starting cost estimate would be (cost so far) + a sufficient number of fills to reach the opposite corner [note: not minimum, just sufficient. Just greedily fill towards the corner to compute the heuristic].        
+    2. depth-4 bruteforce search that max(filled area) - worked reasonably well
+    3. A naive 'greedy' algorithm is to pick the next step that maximises the overall perimeter of the main region.
+    4. After playing the game a few times, I noticed that a good strategy is to always go "deep", to go for the colour which goes farthest into the unflooded territory. 
+---
+
+This game really grabbed my interest, so I spent a couple of days working on it.
+
+The first thing I noticed, is that it is easy to show that after the first board (maybe 2 in some cases), the fastest way to raise the score is by using the multiplier. Because of this, I built a system with the goal of solving each board in the fewest number of steps. I started out wanting to use A* because it is generally built for just these types of search problems... however, this problem still turned out to be a doozie. 
+
+When talking about A*, the effectiveness of it really boils down your choice of heuristic estimation. The closer you get to guessing the actual distance, the fewer nodes that will have to be expanded in order to reach the goal. For this problem, I went through a number of ideas for estimation, but most of them broke the A* rule, which is that you can NOT over estimate the actual distance, or else you break the optimality of A*.
+
+There are a few that work however. Others in this thread have posted about just taking the number of remaining colors as the estimation, which is admissible because it cannot over estimate (you have to change colors at least once for each remaining color not part of the main "flood" area. The problem with this heuristic is that it very poorly estimates the actual distance. Take for instance the first move, which generally has an estimation of the number of colors, 6. It often expands into 2 moves, each of which generally has an estimation of 7, and so on and so on. Take this 5 levels deep and for a board size of 10x10, most leafs have an estimation of 11. This heuristic is basically an implementation of a breadth first search until you reach within 4 or 5 moves from your goal. This is not very efficient and in my own tests, the exponents run a much around board size 9, which often requires about 14 moves in the solution. It should be noted my solution was very high level however and not much care was taken to speed things up.
+
+The problem is that A* is really only good when each step makes a significant refinement to the actual distance of the overall solution. Looking at the problem directly, you probably wont find a good heuristic that can do much better than this without over estimating the cost. However, if you transform the problem into another problem, better heuristics jump out at you. The heuristic "number of colors remaining" is answering the question, what is the smallest number of possible moves remaining. To the answer that question, I asked myself "which spot on the board requires the maximum number of steps to get to"? I ended up settling on the answer to "how many steps is it to the bottom right corner" for my heuristic. This is fairly easy to implement by running another A* search that works more like finding map directions and then counting the number of steps in the solution. I realize this is an arbitrary point on the board to select, however it worked quite well in testing and running A* on every remaining point took a fair amount of time on my single processor test machine.
+
+This heuristic alone had a tendency to collapse after the bottom right corner became part of the flooded area however, so the final result was MAX(bottom right corner min steps, number of colors remaining not part of main flood). This was finally able to achieve some very large board sizes in under a second with my high level implementation.
+
+I'll leave the record setting to you.
+---
+    @Nick: "The problem is that A* is really only good when each step makes a significant refinement to the actual distance of the overall solution" <=> needs a good heuristic. Why not use "how many steps is it to the most distant square (in the color-connectivity sense, not Euclidean sense"? – smci Jan 12 '10 at 20:25
+	I'm thinking by color-connectivity sense that you mean the number of color changes you have to go through in order to get to the answer, which brings you right back to the original problem, having no heuristic better than the number of colors not connected to the main flood. With Euclidean distance, you have an easily admissible (and good) heuristic and then you count the number of steps in the solution to the sub problem. – NickLarsen♦ Jan 12 '10 at 21:01
+	No, I had proposed "distance of the most distant point in terms of the the number of successive color changes needed for the glob to reach it". But using Manhattan (not Euclidean) distance to most-distant-node, similar to what you suggest, would be way faster and require less computation. Strictly all we would need to do is check the corners/outer perimeter of the glob, and compute Manhattan distance to the most distant non-globbed nodes (in BR, BL, TR, TL). That should evaluate very fast. – smci Jan 15 '10 at 2:17
+	It turns out to be very fast to use Dijkstra's algorithm for shortest path to all nodes, find the highest number and take the greater of that or number of non connected colors remaining. Its also way less complicated than my nested A* original approach. – NickLarsen♦ Jan 25 '10 at 20:15	
+	If you use color connectivity as your distance than there is a clear number of minimum steps to each node and you could use that distance in your heuristic. I think there is two more important factors in each step. The first is you should also try to maximize the number of squares you fill. Whenever I play the game I try to keep myself close to the diagonal and get to the south-east corner as fast as possible. This tends maximize my later moves since I flood in all directions. The second is that if you can flood all remaining squares of a color this is a free move.
+---
+
+Given the fixed starting state and limited number of moves I think you can fully explore a decision tree. For each round, there are only 5 possible moves and wasted moves (choosing a color that will not 'glob' any neighbors what-so-ever) can be eliminated as the tree is built. Once the decision tree is built I think you could explore the point value of each path but if you needed more optimization a A* would definitely get you close.
+
+For each round, I would have the basic state as a matrix of bit arrays for the state of the unglobbed locations (since the color no longer matters in the globbed locations you could save memory on your state data structure by leaving off the color bits) and a point value for each decision possible. Then your A*, or breadth first algorithm can just maximize the path values as normal. Save the path, and once your analysis is complete, make all of the determined moves.
+
+
